@@ -1,11 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
-namespace Leap.Unity
+namespace Leap.Unity.Dependency
 {
-    using UnityEngine;
-    using System.Collections.Generic;
-
     internal class DependencyNode : DependencyNodeBase
     {
         public enum NodeKind

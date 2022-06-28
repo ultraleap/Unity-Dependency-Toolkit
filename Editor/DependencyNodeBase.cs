@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEditor.PackageManager;
 
-namespace Leap.Unity
+namespace Leap.Unity.Dependency
 {
     /// <summary>
     /// Base class for nodes.

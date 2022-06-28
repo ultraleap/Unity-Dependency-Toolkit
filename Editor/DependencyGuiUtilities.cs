@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using LibGit2Sharp;
 using UnityEngine;
+using Tree = LibGit2Sharp.Tree;
 
-namespace Leap.Unity
+namespace Leap.Unity.Dependency
 {
     internal static class DependencyGuiUtilities
     {
@@ -79,6 +83,53 @@ namespace Leap.Unity
             int place = Convert.ToInt32(Math.Floor(Math.Log(bytes, 1024)));
             double num = Math.Round(bytes / Math.Pow(1024, place), 1);
             return (Math.Sign(byteCount) * num) + suf[place];
+        }
+
+        public static Dictionary<DependencyNode, List<string>> LookupMissingReferences(IReadOnlyList<DependencyNode> missingReferences, string repositoryDiscoverRootPath, int commitLimit)
+        {
+            if (!(Repository.Discover(repositoryDiscoverRootPath) is { } repoDirectory)) return null;
+            var repo = new Repository(repoDirectory);
+            var checkedBlobs = new HashSet<string>();
+            var possibleFiles = new Dictionary<DependencyNode, HashSet<string>>();
+
+            void RecurseTree(Tree commitTree)
+            {
+                foreach (var entry in commitTree)
+                {
+                    switch (entry.Target)
+                    {
+                        case Blob blob:
+                            if (!entry.Name.EndsWith(".meta")) continue; // Only care about meta files
+                            if (blob.IsBinary) continue; // Why is it not text? Log this?
+                            if (!checkedBlobs.Add(blob.Sha)) continue; // Already checked this blob
+                            var filepath = $"{repo.Info.WorkingDirectory}{entry.Path}";
+
+                            var content = blob.GetContentText();
+                            foreach (var missingRef in missingReferences)
+                            {
+                                if (!content.Contains(missingRef.Guid)) continue;
+                                if (!possibleFiles.TryGetValue(missingRef, out var missingRefPossibleFiles))
+                                {
+                                    missingRefPossibleFiles = possibleFiles[missingRef] = new HashSet<string>();
+                                }
+
+                                missingRefPossibleFiles.Add(filepath);
+                            }
+
+                            break;
+                        case Tree t:
+                            RecurseTree(t);
+                            break;
+                    }
+                }
+            }
+            
+            foreach (var commit in repo.Commits.Take(commitLimit))
+            {
+                RecurseTree(commit.Tree);
+            }
+
+            return possibleFiles.ToDictionary(pair => pair.Key, pair => pair.Value.ToList());
         }
     }
 }

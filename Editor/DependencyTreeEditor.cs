@@ -1,11 +1,11 @@
-namespace Leap.Unity
-{
-    using UnityEngine;
-    using UnityEditor;
-    using System;
-    using System.Linq;
-    using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
+using UnityEngine;
 
+namespace Leap.Unity.Dependency
+{
     [CustomEditor(typeof(DependencyTree))]
     internal class DependencyTreeEditor : Editor
     {
@@ -261,9 +261,21 @@ namespace Leap.Unity
                     selectionChanged = true;
                 }
 
-                GUILayout.Space(4 + (12 * indent));
-                var nodeText = $"{node.Name} ({DependencyGuiUtilities.BytesToString(node.GetSize())}){(node is DependencyNode n ? $" [{n.Dependants.Count} refs, {n.Dependencies.Count} deps]" : string.Empty)}";
+                var dependencyNode = node as DependencyNode;
 
+                GUILayout.Space(4 + (12 * indent));
+                var nodeText = $"{node.Name} ({DependencyGuiUtilities.BytesToString(node.GetSize())}){(dependencyNode != null ? $" [{dependencyNode.Dependants.Count} refs, {dependencyNode.Dependencies.Count} deps]" : string.Empty)}";
+
+                void DrawGoToButton()
+                {
+                    if (dependencyNode != null && GUILayout.Button("Go To", GUILayout.Width(50f)))
+                    {
+                        var objectToSelect = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(AssetDatabase.GUIDToAssetPath(dependencyNode.Guid));
+                        Selection.activeObject = objectToSelect;
+                        EditorGUIUtility.PingObject(objectToSelect);
+                    }
+                }
+                
                 IEnumerable<DependencyNodeBase> children = Enumerable.Empty<DependencyNodeBase>();
                 if (node is DependencyFolderNode folderNode)
                 {
@@ -284,15 +296,33 @@ namespace Leap.Unity
                     {
                         children = folderNode.Children;
                     }
+                    DrawGoToButton();
+                    EditorGUILayout.EndHorizontal();
+                }
+                else if (dependencyNode is { Kind: DependencyNode.NodeKind.Missing })
+                {
+                    GUI.color = DependencyGuiUtilities.GetColor(node, selectedNode);
+                    EditorGUILayout.LabelField(nodeText);
+                    DrawGoToButton();
+                    EditorGUILayout.EndHorizontal();
+                    var missingRefDetails = ((DependencyTree)target).MissingReferenceLookups.FirstOrDefault(lookup => lookup.guid == dependencyNode.Guid);
+                    foreach (var foundFile in missingRefDetails?.foundFiles ?? Enumerable.Empty<string>())
+                    {
+                        EditorGUILayout.BeginHorizontal();
+                        GUILayout.Space(20 + 4 + (12 * indent));
+                        EditorGUILayout.LabelField(foundFile);
+                        EditorGUILayout.EndHorizontal();
+                    }
+                    GUI.color = Color.white;
                 }
                 else
                 {
                     GUI.color = DependencyGuiUtilities.GetColor(node, selectedNode);
                     EditorGUILayout.LabelField(nodeText);
                     GUI.color = Color.white;
+                    DrawGoToButton();
+                    EditorGUILayout.EndHorizontal();
                 }
-
-                EditorGUILayout.EndHorizontal();
                 
                 foreach (var child in (Sort switch
                          {
@@ -309,6 +339,20 @@ namespace Leap.Unity
                 }
 
                 return selectionChanged;
+            }
+        }
+
+        public void DrawGitLookupMissingRefButton(string lookupRoot, int commitLimit)
+        {
+            if (GUILayout.Button("Git Lookup Missing Refs"))
+            {
+                var missingRefNodes = _missingReferencesNode.Children.Cast<DependencyNode>().ToArray();
+                var lookup = DependencyGuiUtilities.LookupMissingReferences(missingRefNodes, lookupRoot, commitLimit);
+                ((DependencyTree)target).MissingReferenceLookups = lookup.Select(pair => new DependencyTree.MissingReferenceLookup
+                {
+                    guid = pair.Key.Guid,
+                    foundFiles = pair.Value
+                }).ToList();
             }
         }
     }
