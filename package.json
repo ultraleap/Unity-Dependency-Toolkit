@@ -1,0 +1,17 @@
+{
+    "name": "com.ultraleap.dependencytoolkit",
+    "version": "1.0.0-pre.0",
+    "displayName": "Ultraleap Dependency Toolkit",
+    "description": "Tools for discovering, navigating and analysing asset dependencies.",
+    "unity": "2020.3",
+    "license": "Apache-2.0",
+    "keywords": [
+        "ultraleap",
+        "leap motion"
+    ],
+    "author": {
+        "name": "Ultraleap",
+        "email": "contact@ultraleap.com",
+        "url": "https://www.ultraleap.com"
+    }
+}
