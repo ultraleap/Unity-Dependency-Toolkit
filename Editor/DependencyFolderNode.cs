@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Leap.Unity
+namespace Leap.Unity.Dependency
 {
     internal class DependencyFolderNode : DependencyNodeBase
     {
