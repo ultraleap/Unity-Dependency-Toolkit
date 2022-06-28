@@ -6,11 +6,11 @@ Tools for discovering, navigating and analysing asset dependencies.
 
 1. In `Edit -> Project Settings -> Package Manager`, add a new scoped registry with the following details. Scoped registry setup only needs to be performed once per Unity project.
 
-
-    Name: Ultraleap
-    URL: https://package.openupm.com
-    Scope(s): com.ultraleap
-
+```
+Name: Ultraleap
+URL: https://package.openupm.com
+Scope(s): com.ultraleap
+```
 
 2. Open the Package Manager (`Window -> Package Manager`) and navigate to "My Registries" in the dropdown at the top left of the window.
 
