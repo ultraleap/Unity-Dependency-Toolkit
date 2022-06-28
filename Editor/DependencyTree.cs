@@ -1,16 +1,15 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
+using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEditor.PackageManager;
+using UnityEngine;
 
-namespace Leap.Unity
+namespace Leap.Unity.Dependency
 {
-    using UnityEngine;
-    using UnityEditor;
-    using System;
-    using System.IO;
-    using System.Linq;
-    using System.Text.RegularExpressions;
-    using System.Collections.Generic;
-
     internal class DependencyTree : ScriptableObject
     {
         [Serializable]
@@ -32,6 +31,13 @@ namespace Leap.Unity
             public List<string> assetsWithoutGuids = new List<string>();
             public List<string> duplicatedGuids = new List<string>();
             public List<string> missingGuidReferences = new List<string>();
+        }
+
+        [Serializable]
+        public class MissingReferenceLookup
+        {
+            public string guid;
+            public List<string> foundFiles;
         }
 
         /// <summary>
@@ -329,6 +335,7 @@ namespace Leap.Unity
         };
         public List<AssetReference> RawTree = new List<AssetReference>();
         public StaticAnalysisResults AnalysisResults;
+        public List<MissingReferenceLookup> MissingReferenceLookups = new List<MissingReferenceLookup>();
         [NonSerialized] public DependencyFolderNode RootNode;
         [NonSerialized] public Dictionary<string, DependencyNode> NodesByGuid;
 

@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEngine;
 
-namespace Leap.Unity
+namespace Leap.Unity.Dependency
 {
     internal class DependencyBrowser : EditorWindow
     {
@@ -45,6 +45,11 @@ namespace Leap.Unity
         private bool filterToOnlyUnused;
         private bool filterToAssetsMissingRefs;
         private bool showExternalPackages;
+        
+        private int repositoryLookupCommitLimit;
+        private string repositoryLookupCommitLimitKey = "UltraleapDependencyBrowserGitRepoLookupCommitLimit";
+        private string repositoryLookupRoot;
+        private readonly string repositoryLookupRootKey = "UltraleapDependencyBrowserGitRepoLookupRoot";
 
         private event Action resizeOccurred;
 
@@ -81,7 +86,8 @@ namespace Leap.Unity
             currentVerticalDistance = windowSize.y / 2f;
             horizontalResizeInteractionRect = new Rect(currentHorizontalDistance, 0f, 8f, windowSize.y);
             verticalResizeInteractionRect = new Rect(currentHorizontalDistance + resizerSpacing, currentVerticalDistance, windowSize.x - currentHorizontalDistance - resizerSpacing, 8f);
-
+            repositoryLookupRoot = EditorPrefs.GetString(repositoryLookupRootKey, Environment.CurrentDirectory);
+            repositoryLookupCommitLimit = EditorPrefs.GetInt(repositoryLookupCommitLimitKey, 500);
 
             void UpdateResizeInteractionRects()
             {
@@ -112,7 +118,15 @@ namespace Leap.Unity
             filterToAssetsMissingRefs = GUILayout.Toggle(filterToAssetsMissingRefs, "Filter to assets with missing references");
             showExternalPackages = GUILayout.Toggle(showExternalPackages, "Show external packages");
             editor.DrawSortPopup();
-
+            
+            repositoryLookupRoot = GUILayout.TextField(repositoryLookupRoot);
+            EditorPrefs.SetString(repositoryLookupRootKey, repositoryLookupRoot);
+            GUILayout.BeginHorizontal();
+            repositoryLookupCommitLimit = EditorGUILayout.IntField(repositoryLookupCommitLimit);
+            EditorPrefs.SetInt(repositoryLookupCommitLimitKey, repositoryLookupCommitLimit);
+            editor.DrawGitLookupMissingRefButton(repositoryLookupRoot, repositoryLookupCommitLimit);
+            GUILayout.EndHorizontal();
+            
             GUILayout.Label($"Current selection: {editor.Selected}");
             GUILayout.Label("Select an asset or folder");
             _selectionTreeViewDrawer ??= editor.CreateNodeViewDrawer(
