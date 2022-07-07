@@ -1,6 +1,6 @@
 {
     "name": "com.ultraleap.dependencytoolkit",
-    "version": "1.0.0-pre.0",
+    "version": "1.0.0-pre.2",
     "displayName": "Ultraleap Dependency Toolkit",
     "description": "Tools for discovering, navigating and analysing asset dependencies.",
     "unity": "2020.3",

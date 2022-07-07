@@ -27,9 +27,10 @@ Scope(s): com.ultraleap
 1. Discover dependencies and references to an individual asset or folder
 2. Filtering for unused (0 reference) assets
 3. Filtering for missing references along with list of references to a specific missing asset
-4. Aggregate and navigate resource folders from all packages
-5. Displays file sizes with option to sort by size
-6. Supports both packages and the assets directory
+4. Lookup missing references in git repo history, recovering names for those found
+5. Aggregate and navigate resource folders from all packages
+6. Displays file sizes with option to sort by size
+7. Supports both packages and the assets directory
 
 ### Limitations
 
